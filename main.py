@@ -1,35 +1,28 @@
 from flask import Flask, request, render_template
-import openai
-import os
-from dotenv import load_dotenv
+from openai_client import get_openrouter_client
+import traceback
 
-# Tải biến môi trường từ file .env (nếu có)
-load_dotenv()
-
-# Gán API key từ biến môi trường
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Khởi tạo Flask app
 app = Flask(__name__)
+client = get_openrouter_client()
 
-# Trang chính: hiển thị giao diện + xử lý form hỏi/đáp
 @app.route("/", methods=["GET", "POST"])
 def index():
-    answer = ""
+    reply = ""
     if request.method == "POST":
-        question = request.form["question"]
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # Bạn có thể thay bằng model khác nếu muốn
+            user_input = request.form["message"]
+            response = client.chat.completions.create(
+                model="deepseek/deepseek-r1:free",  # 🔁 Có thể thay bằng gemini hoặc mistral
                 messages=[
-                    {"role": "user", "content": question}
-                ]
+                    {"role": "user", "content": user_input}
+                ],
+                max_tokens=1024,
+                temperature=0.7
             )
-            answer = response.choices[0].message.content.strip()
-        except Exception as e:
-            answer = f"❌ Lỗi khi gọi API: {str(e)}"
-    return render_template("index.html", answer=answer)
+            reply = response.choices[0].message.content
+        except Exception:
+            reply = f"<pre>{traceback.format_exc()}</pre>"
+    return render_template("index.html", reply=reply)
 
-# Chạy ứng dụng Flask trên host và port yêu cầu của Render
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
