@@ -1,17 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Agent DEMO</title>
+    <meta charset="UTF-8">
+    <title>AI Agent - Giao diện test</title>
 </head>
 <body>
-  <h2>💬 Hỏi gì AI cũng trả lời</h2>
-  <form method="POST">
-    <input type="text" name="question" placeholder="Nhập câu hỏi tại đây..." required>
-    <button type="submit">Gửi</button>
-  </form>
-  {% if answer %}
-    <p><strong>🤖 Trả lời:</strong> {{ answer }}</p>
-  {% endif %}
+    <h2>🧠 Trợ lý AI của bạn</h2>
+    <form id="chat-form">
+        <label for="prompt">Nhập câu hỏi:</label><br>
+        <input type="text" id="prompt" name="prompt" style="width: 300px;" required>
+        <button type="submit">Gửi</button>
+    </form>
+    <br>
+    <div><strong>Phản hồi:</strong></div>
+    <div id="response" style="margin-top: 10px; border: 1px solid #ccc; padding: 10px;"></div>
+
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const prompt = document.getElementById('prompt').value;
+            const res = await fetch('/hoi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await res.json();
+            document.getElementById('response').textContent = data.reply || data.error || "Không có phản hồi.";
+        });
+    </script>
 </body>
 </html>
